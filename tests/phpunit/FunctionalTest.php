@@ -69,6 +69,7 @@ class FunctionalTest extends TestCase
         $output = $runProcess->getOutput();
         $errorOutput = $runProcess->getErrorOutput();
 
+        sleep(5);
         $jobs = $this->client->getOrchestrationJobs($orchestrationId);
         $this->assertCount(1, $jobs);
 
