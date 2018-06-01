@@ -8,7 +8,6 @@ use Guzzle\Http\Exception\ClientErrorResponseException;
 use Keboola\Component\BaseComponent;
 use Keboola\Component\UserException;
 use Keboola\Orchestrator\Client as OrchestratorClient;
-use Keboola\StorageApi\Client as StorageApiClient;
 
 class Component extends BaseComponent
 {
@@ -23,7 +22,6 @@ class Component extends BaseComponent
     private const STATUS_WARNING = 'warning';
     private const STATUS_TERMINATED = 'terminated';
 
-    private const ORCHESTRATOR_COMPONENT_ID = 'orchestrator';
 
     /**
      * @var OrchestratorClient
@@ -41,14 +39,18 @@ class Component extends BaseComponent
         $this->getLogger()->info(sprintf('Triggering orchestration "%s"', $orchestrationName));
         $job = $this->client->runOrchestration($orchestrationId);
 
-        $this->getLogger()->info(sprintf('Orchestration "%s" triggered, job "%s" created', $orchestrationName, $job['id']));
+        $this->getLogger()->info(sprintf(
+            'Orchestration "%s" triggered, job "%s" created',
+            $orchestrationName,
+            $job['id']
+        ));
 
         if ($wait) {
             $this->waitUntilFinish($job['id']);
         }
     }
 
-    private function waitUntilFinish(int $jobId)
+    private function waitUntilFinish(int $jobId): void
     {
         $this->getLogger()->info(sprintf('Waiting for job "%s" finish', $jobId));
 
@@ -110,31 +112,11 @@ class Component extends BaseComponent
 
         $this->client = OrchestratorClient::factory([
             'token' => $kbcToken,
-            'url' => $this->getOrchestratorApiUrl($kbcToken, $kbcUrl),
+            'url' => OrchestratorEndpoint::detect($kbcToken, $kbcUrl),
         ]);
     }
 
-    private function getOrchestratorApiUrl(string $kbcToken, string $kbcUrl): string
-    {
-        $sapiClient = new StorageApiClient([
-            'token' => $kbcToken,
-            'url' => $kbcUrl,
-        ]);
-
-        $index = $sapiClient->indexAction();
-        foreach ($index['components'] as $component) {
-            if ($component['id'] !== self::ORCHESTRATOR_COMPONENT_ID) {
-                continue;
-            }
-
-            return $component['uri'];
-        }
-
-        $tokenData = $sapiClient->verifyToken();
-        throw new UserException(sprintf('Orchestrator not found in %s region', $tokenData['owner']['region']));
-    }
-
-    private function isFinishedStatus($value)
+    private function isFinishedStatus(string $value): bool
     {
         $map = array(
             self::STATUS_SUCCESS,
