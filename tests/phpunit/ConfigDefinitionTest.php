@@ -32,13 +32,34 @@ class ConfigDefinitionTest extends TestCase
                 [
                     'parameters' => [
                         '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
                         'orchestrationId' => 1234567890,
                     ],
                 ],
                 [
                     'parameters' => [
                         '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
                         'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => false,
+                    ],
+                ],
+            ],
+            'config with wait' => [
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => true,
+                    ],
+                ],
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => true,
                     ],
                 ],
             ],
@@ -73,10 +94,20 @@ class ConfigDefinitionTest extends TestCase
                 InvalidConfigurationException::class,
                 'The child node "#kbcToken" at path "root.parameters" must be configured.',
             ],
+            'missing KBC endpoint' => [
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                    ],
+                ],
+                InvalidConfigurationException::class,
+                'The child node "kbcUrl" at path "root.parameters" must be configured.',
+            ],
             'missing orchestration ID' => [
                 [
                     'parameters' => [
                         '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
                     ],
                 ],
                 InvalidConfigurationException::class,
