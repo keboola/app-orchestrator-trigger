@@ -1,8 +1,13 @@
 # my-component
 
-[![Build Status](https://travis-ci.org/keboola/my-component.svg?branch=master)](https://travis-ci.org/keboola/my-component)
-
-> Fill in description
+{
+  "parameters": {
+    "#kbcToken": "STORAGE_API_TOKEN",
+    "kbcUrl": "STORAGE_API_URL",
+    "orchestrationId": "ORCHESTRATION_ID",
+    "waitUntilFinish": true
+  }
+}
 
 # Usage
 
