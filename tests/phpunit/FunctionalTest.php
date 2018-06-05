@@ -7,6 +7,7 @@ namespace Keboola\App\OrchestratorTrigger\Tests;
 use Keboola\App\OrchestratorTrigger\OrchestratorEndpoint;
 use Keboola\Orchestrator\Client as OrchestratorClient;
 use Keboola\Orchestrator\OrchestrationTask;
+use Keboola\StorageApi\Client as StorageApi;
 use Keboola\Temp\Temp;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -25,13 +26,28 @@ class FunctionalTest extends TestCase
     protected $client;
 
     /**
+     * @var StorageApi
+     */
+    protected $sapiClient;
+
+    /**
      * @var OrchestratorClient
      */
     protected $destinationClient;
 
+    /**
+     * @var string
+     */
+    private $testRunId;
+
     public function setUp(): void
     {
         parent::setUp();
+
+        $this->sapiClient = new StorageApi([
+            'url' => getenv('TEST_STORAGE_API_URL'),
+            'token' => getenv('TEST_STORAGE_API_TOKEN'),
+        ]);
 
         $this->client = OrchestratorClient::factory([
             'token' => getenv('TEST_STORAGE_API_TOKEN'),
@@ -45,6 +61,8 @@ class FunctionalTest extends TestCase
         $this->temp->initRunFolder();
 
         $this->cleanupKbcProject();
+
+        $this->testRunId = $this->sapiClient->generateRunId();
     }
 
     public function testRun(): void
@@ -203,6 +221,7 @@ class FunctionalTest extends TestCase
         $runCommand = "php /code/src/run.php";
         return new  Process($runCommand, null, [
             'KBC_DATADIR' => $this->temp->getTmpFolder(),
+            'KBC_RUNID' => $this->testRunId,
         ]);
     }
 
@@ -224,5 +243,60 @@ class FunctionalTest extends TestCase
         $this->client->updateTasks($orchestrationId, [$task]);
 
         return $orchestrationId;
+    }
+
+    public function testRunIdPropagation(): void
+    {
+        $events = $this->sapiClient->listEvents(['runId' => $this->testRunId]);
+        self::assertCount(0, $events);
+
+        $orchestrationId = $this->createOrchestration(getenv('TEST_COMPONENT_CONFIG_ID'));
+
+        $fileSystem = new Filesystem();
+        $fileSystem->dumpFile(
+            $this->temp->getTmpFolder() . '/config.json',
+            \json_encode([
+                'parameters' => [
+                    '#kbcToken' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'kbcUrl' => getenv('TEST_STORAGE_API_URL'),
+                    'orchestrationId' => $orchestrationId,
+                    'waitUntilFinish' => true,
+                ],
+            ])
+        );
+
+        $runProcess = $this->createTestProcess();
+        $runProcess->mustRun();
+
+        $output = $runProcess->getOutput();
+        $errorOutput = $runProcess->getErrorOutput();
+
+        $this->assertEmpty($errorOutput);
+
+        $jobs = $this->client->getOrchestrationJobs($orchestrationId);
+        $this->assertCount(1, $jobs);
+
+        $job = reset($jobs);
+
+        $this->assertContains('Triggering orchestration', $output);
+        $this->assertContains('triggered', $output);
+        $this->assertContains('Waiting for job', $output);
+        $this->assertContains('successfully finished', $output);
+
+        $this->assertArrayHasKey('status', $job);
+        $this->assertArrayHasKey('id', $job);
+
+        $this->assertContains(sprintf('job "%s" created', $job['id']), $output);
+        $this->assertEquals('success', $job['status']);
+
+        $events = $this->sapiClient->listEvents(['runId' => $this->testRunId]);
+        self::assertGreaterThan(0, count($events));
+
+        $this->assertCount(1, array_filter(
+            $events,
+            function (array $event) use ($job) {
+                return $event['message'] === sprintf('Orchestration job %s end', $job['id']);
+            }
+        ));
     }
 }
