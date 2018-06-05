@@ -23,11 +23,9 @@ class OrchestratorEndpoint
         try {
             $index = $sapiClient->indexAction();
             foreach ($index['components'] as $component) {
-                if ($component['id'] !== self::ORCHESTRATOR_COMPONENT_ID) {
-                    continue;
+                if ($component['id'] === self::ORCHESTRATOR_COMPONENT_ID) {
+                    return $component['uri'];
                 }
-
-                return $component['uri'];
             }
         } catch (ClientException $e) {
             throw new UserException('Cannot load KBC Component index', 0, $e);
