@@ -1,5 +1,6 @@
 {
     "name": "keboola/app-orchestrator-trigger",
+    "description": "Trigger for configured orchestrations",
     "license": "MIT",
     "require": {
         "PHP": "^7.1",
