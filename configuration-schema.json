@@ -38,7 +38,7 @@
     },
     "waitUntilFinish": {
       "type": "boolean",
-      "title": "Check for successful finish of triggered orchestration",
+      "title": "Wait for job finish and check jobs status",
       "default": false,
       "minLength": 1,
       "propertyOrder": 4
