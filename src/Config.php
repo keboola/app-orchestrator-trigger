@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyComponent;
+namespace Keboola\App\OrchestratorTrigger;
 
 use Keboola\Component\Config\BaseConfig;
 
