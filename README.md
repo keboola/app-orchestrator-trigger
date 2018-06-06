@@ -56,7 +56,7 @@ TEST_COMPONENT_ID=
 TEST_COMPONENT_CONFIG_ID=
 ```
 
-`TEST_COMPONENT_ID` and `TEST_COMPONENT_CONFIG_ID` variables are because Orchestrator requires least one task configured in orchestration for run.
+`TEST_COMPONENT_ID` and `TEST_COMPONENT_CONFIG_ID` variables are because Orchestration requires at least one configured task in order to run.
 
 The easiest way is create new empty transformation bucket. Then use _"transformation"_ for `TEST_COMPONENT_ID` and bucket id for `TEST_COMPONENT_CONFIG_ID`.
 
