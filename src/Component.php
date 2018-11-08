@@ -114,11 +114,6 @@ class Component extends BaseComponent
             'token' => $kbcToken,
             'url' => OrchestratorEndpoint::detect($kbcToken, $kbcUrl),
         ]);
-
-        $this->client->setDefaultOption('headers', array_merge(
-            $this->client->getDefaultOption('headers'),
-            ['X-KBC-RunId' => getenv('KBC_RUNID')]
-        ));
     }
 
     private function isFinishedStatus(string $value): bool

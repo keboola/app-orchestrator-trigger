@@ -245,7 +245,7 @@ class FunctionalTest extends TestCase
         return $orchestrationId;
     }
 
-    public function testRunIdPropagation(): void
+    public function testRunIdNotPropagate(): void
     {
         $events = $this->sapiClient->listEvents(['runId' => $this->testRunId]);
         self::assertCount(0, $events);
@@ -290,8 +290,9 @@ class FunctionalTest extends TestCase
         $this->assertEquals('success', $job['status']);
 
         $events = $this->sapiClient->listEvents(['runId' => $this->testRunId]);
-        self::assertGreaterThan(0, count($events));
+        self::assertCount(0, $events);
 
+        $events = $this->sapiClient->listEvents();
         $this->assertCount(1, array_filter(
             $events,
             function (array $event) use ($job) {
