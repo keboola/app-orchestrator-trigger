@@ -42,6 +42,7 @@ class ConfigDefinitionTest extends TestCase
                         'kbcUrl' => 'https://connection.keboola.com',
                         'orchestrationId' => 1234567890,
                         'waitUntilFinish' => false,
+                        'notificationsEmails' => [],
                     ],
                 ],
             ],
@@ -60,6 +61,57 @@ class ConfigDefinitionTest extends TestCase
                         'kbcUrl' => 'https://connection.keboola.com',
                         'orchestrationId' => 1234567890,
                         'waitUntilFinish' => true,
+                        'notificationsEmails' => [],
+                    ],
+                ],
+            ],
+            'config with email' => [
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => true,
+                        'notificationsEmails' => [
+                            'spam@keboola.com',
+                        ],
+                    ],
+                ],
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => true,
+                        'notificationsEmails' => [
+                            'spam@keboola.com',
+                        ],
+                    ],
+                ],
+            ],
+            'config with more mails' => [
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => true,
+                        'notificationsEmails' => [
+                            'spam@keboola.com',
+                            'spam+trigger@keboola.com',
+                        ],
+                    ],
+                ],
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'waitUntilFinish' => true,
+                        'notificationsEmails' => [
+                            'spam@keboola.com',
+                            'spam+trigger@keboola.com',
+                        ],
                     ],
                 ],
             ],
@@ -112,6 +164,18 @@ class ConfigDefinitionTest extends TestCase
                 ],
                 InvalidConfigurationException::class,
                 'The child node "orchestrationId" at path "root.parameters" must be configured.',
+            ],
+            'notifications emails as string' => [
+                [
+                    'parameters' => [
+                        '#kbcToken' => 'some-token',
+                        'kbcUrl' => 'https://connection.keboola.com',
+                        'orchestrationId' => 1234567890,
+                        'notificationsEmails' => 'spam@keboola.com',
+                    ],
+                ],
+                InvalidConfigurationException::class,
+                'Invalid type for path "root.parameters.notificationsEmails". Expected array, but got string',
             ],
             'extra params' => [
                 [

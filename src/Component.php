@@ -37,7 +37,11 @@ class Component extends BaseComponent
         $orchestrationName = $this->loadOrchestrationName($orchestrationId);
 
         $this->getLogger()->info(sprintf('Triggering orchestration "%s"', $orchestrationName));
-        $job = $this->client->runOrchestration($orchestrationId);
+
+        $job = $this->client->runOrchestration(
+            $orchestrationId,
+            $this->getConfig()->getValue(['parameters', 'notificationsEmails'])
+        );
 
         $this->getLogger()->info(sprintf(
             'Orchestration "%s" triggered, job "%s" created',

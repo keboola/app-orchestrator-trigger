@@ -31,6 +31,7 @@ Then you can setup the Orchestrator Trigger app.
     - https://connection.eu-central-1.keboola.com for `EU` stack
 - `orchestrationId` _(integer)_ - ID of triggered orchestration
 - `waitUntilFinish` _(boolean, default false false)_ - Wait for job finish and check jobs status
+- `notificationsEmails` _(array, optional)_ - List of email address for notification if triggered orchestration fails with `error` or `warning` status
 
 
 

@@ -28,6 +28,10 @@ class ConfigDefinition extends BaseConfigDefinition
                 ->booleanNode('waitUntilFinish')
                     ->defaultFalse()
                 ->end()
+                ->arrayNode('notificationsEmails')
+                    ->prototype('scalar')
+                    ->end()
+                ->end()
             ->end()
         ;
         // @formatter:on

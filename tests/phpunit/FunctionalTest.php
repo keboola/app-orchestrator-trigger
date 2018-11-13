@@ -300,4 +300,40 @@ class FunctionalTest extends TestCase
             }
         ));
     }
+
+    public function testNotificationsEmails(): void
+    {
+        $notificationEmail = 'spam@keboola.com';
+        $orchestrationId = $this->createOrchestration(getenv('TEST_COMPONENT_CONFIG_ID'));
+
+        $fileSystem = new Filesystem();
+        $fileSystem->dumpFile(
+            $this->temp->getTmpFolder() . '/config.json',
+            \json_encode([
+                'parameters' => [
+                    '#kbcToken' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'kbcUrl' => getenv('TEST_STORAGE_API_URL'),
+                    'orchestrationId' => $orchestrationId,
+                    'waitUntilFinish' => true,
+                    'notificationsEmails' => [$notificationEmail],
+                ],
+            ])
+        );
+
+        $runProcess = $this->createTestProcess();
+        $runProcess->mustRun();
+
+        $output = $runProcess->getOutput();
+        $errorOutput = $runProcess->getErrorOutput();
+
+        $this->assertEmpty($errorOutput);
+
+        $jobs = $this->client->getOrchestrationJobs($orchestrationId);
+        $this->assertCount(1, $jobs);
+
+        $job = reset($jobs);
+
+        $this->assertArrayHasKey('notificationsEmails', $job);
+        $this->assertEquals([$notificationEmail], $job['notificationsEmails']);
+    }
 }
