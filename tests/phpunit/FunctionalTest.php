@@ -103,6 +103,32 @@ class FunctionalTest extends TestCase
 
     public function testRunError(): void
     {
+        $orchestrationId = $this->createOrchestration(null);
+
+        $fileSystem = new Filesystem();
+        $fileSystem->dumpFile(
+            $this->temp->getTmpFolder() . '/config.json',
+            \json_encode([
+                'parameters' => [
+                    '#kbcToken' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'kbcUrl' => getenv('TEST_STORAGE_API_URL'),
+                    'orchestrationId' => $orchestrationId,
+                    'notificationsEmails' => ['test'],
+                ],
+            ])
+        );
+
+        $runProcess = $this->createTestProcess();
+        $runProcess->run();
+
+        $this->assertEquals(1, $runProcess->getExitCode());
+
+        $errorOutput = $runProcess->getErrorOutput();
+        $this->assertEquals('Invalid email: test', trim($errorOutput));
+    }
+
+    public function testRunLoadOrchestrationError(): void
+    {
         $fileSystem = new Filesystem();
         $fileSystem->dumpFile(
             $this->temp->getTmpFolder() . '/config.json',
@@ -121,7 +147,7 @@ class FunctionalTest extends TestCase
         $this->assertEquals(1, $runProcess->getExitCode());
 
         $errorOutput = $runProcess->getErrorOutput();
-        $this->assertContains('Orchestration 1 not found', $errorOutput);
+        $this->assertEquals('Orchestration 1 not found', trim($errorOutput));
     }
 
     public function testWaitRun(): void
@@ -299,5 +325,41 @@ class FunctionalTest extends TestCase
                 return $event['message'] === sprintf('Orchestration job %s end', $job['id']);
             }
         ));
+    }
+
+    public function testNotificationsEmails(): void
+    {
+        $notificationEmail = 'spam@keboola.com';
+        $orchestrationId = $this->createOrchestration(getenv('TEST_COMPONENT_CONFIG_ID'));
+
+        $fileSystem = new Filesystem();
+        $fileSystem->dumpFile(
+            $this->temp->getTmpFolder() . '/config.json',
+            \json_encode([
+                'parameters' => [
+                    '#kbcToken' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'kbcUrl' => getenv('TEST_STORAGE_API_URL'),
+                    'orchestrationId' => $orchestrationId,
+                    'waitUntilFinish' => true,
+                    'notificationsEmails' => [$notificationEmail],
+                ],
+            ])
+        );
+
+        $runProcess = $this->createTestProcess();
+        $runProcess->mustRun();
+
+        $output = $runProcess->getOutput();
+        $errorOutput = $runProcess->getErrorOutput();
+
+        $this->assertEmpty($errorOutput);
+
+        $jobs = $this->client->getOrchestrationJobs($orchestrationId);
+        $this->assertCount(1, $jobs);
+
+        $job = reset($jobs);
+
+        $this->assertArrayHasKey('notificationsEmails', $job);
+        $this->assertEquals([$notificationEmail], $job['notificationsEmails']);
     }
 }
