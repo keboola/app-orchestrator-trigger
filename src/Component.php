@@ -8,6 +8,7 @@ use Guzzle\Http\Exception\ClientErrorResponseException;
 use Keboola\Component\BaseComponent;
 use Keboola\Component\UserException;
 use Keboola\Orchestrator\Client as OrchestratorClient;
+use GuzzleHttp\Exception\ClientException;
 
 class Component extends BaseComponent
 {
@@ -34,23 +35,34 @@ class Component extends BaseComponent
         $wait = $this->getConfig()->getValue(['parameters', 'waitUntilFinish']);
 
         $orchestrationId = $this->getConfig()->getValue(['parameters', 'orchestrationId']);
-        $orchestrationName = $this->loadOrchestrationName($orchestrationId);
 
-        $this->getLogger()->info(sprintf('Triggering orchestration "%s"', $orchestrationName));
+        try {
+            $orchestrationName = $this->loadOrchestrationName($orchestrationId);
 
-        $job = $this->client->runOrchestration(
-            $orchestrationId,
-            $this->getConfig()->getValue(['parameters', 'notificationsEmails'])
-        );
+            $this->getLogger()->info(sprintf('Triggering orchestration "%s"', $orchestrationName));
 
-        $this->getLogger()->info(sprintf(
-            'Orchestration "%s" triggered, job "%s" created',
-            $orchestrationName,
-            $job['id']
-        ));
+            $job = $this->client->runOrchestration(
+                $orchestrationId,
+                $this->getConfig()->getValue(['parameters', 'notificationsEmails'])
+            );
 
-        if ($wait) {
-            $this->waitUntilFinish($job['id']);
+            $this->getLogger()->info(sprintf(
+                'Orchestration "%s" triggered, job "%s" created',
+                $orchestrationName,
+                $job['id']
+            ));
+
+            if ($wait) {
+                $this->waitUntilFinish($job['id']);
+            }
+        } catch (ClientErrorResponseException $e) {
+            $json = $e->getResponse()->json();
+
+            if (isset($json['message'])) {
+                throw new UserException($json['message'], 0, $e);
+            }
+
+            throw $e;
         }
     }
 
@@ -82,19 +94,9 @@ class Component extends BaseComponent
 
     private function loadOrchestrationName(int $orchestrationId): string
     {
-        try {
-            $this->getLogger()->info('Fetching orchestration details');
-            $orchestration = $this->client->getOrchestration($orchestrationId);
-            return $orchestration['name'];
-        } catch (ClientErrorResponseException $e) {
-            $json = $e->getResponse()->json();
-
-            if (isset($json['message'])) {
-                throw new UserException($json['message'], 0, $e);
-            }
-
-            throw $e;
-        }
+        $this->getLogger()->info('Fetching orchestration details');
+        $orchestration = $this->client->getOrchestration($orchestrationId);
+        return $orchestration['name'];
     }
 
     protected function getConfigClass(): string

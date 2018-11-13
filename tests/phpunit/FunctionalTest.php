@@ -103,6 +103,32 @@ class FunctionalTest extends TestCase
 
     public function testRunError(): void
     {
+        $orchestrationId = $this->createOrchestration(null);
+
+        $fileSystem = new Filesystem();
+        $fileSystem->dumpFile(
+            $this->temp->getTmpFolder() . '/config.json',
+            \json_encode([
+                'parameters' => [
+                    '#kbcToken' => getenv('TEST_STORAGE_API_TOKEN'),
+                    'kbcUrl' => getenv('TEST_STORAGE_API_URL'),
+                    'orchestrationId' => $orchestrationId,
+                    'notificationsEmails' => ['test'],
+                ],
+            ])
+        );
+
+        $runProcess = $this->createTestProcess();
+        $runProcess->run();
+
+        $this->assertEquals(1, $runProcess->getExitCode());
+
+        $errorOutput = $runProcess->getErrorOutput();
+        $this->assertEquals('Invalid email: test', trim($errorOutput));
+    }
+
+    public function testRunLoadOrchestrationError(): void
+    {
         $fileSystem = new Filesystem();
         $fileSystem->dumpFile(
             $this->temp->getTmpFolder() . '/config.json',
@@ -121,7 +147,7 @@ class FunctionalTest extends TestCase
         $this->assertEquals(1, $runProcess->getExitCode());
 
         $errorOutput = $runProcess->getErrorOutput();
-        $this->assertContains('Orchestration 1 not found', $errorOutput);
+        $this->assertEquals('Orchestration 1 not found', trim($errorOutput));
     }
 
     public function testWaitRun(): void
