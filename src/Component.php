@@ -31,22 +31,33 @@ class Component extends BaseComponent
     public function run(): void
     {
         $this->initOrchestratorClient();
+
         $wait = $this->getConfig()->getValue(['parameters', 'waitUntilFinish']);
-
         $orchestrationId = $this->getConfig()->getValue(['parameters', 'orchestrationId']);
-        $orchestrationName = $this->loadOrchestrationName($orchestrationId);
 
-        $this->getLogger()->info(sprintf('Triggering orchestration "%s"', $orchestrationName));
-        $job = $this->client->runOrchestration($orchestrationId);
+        try {
+            $orchestrationName = $this->loadOrchestrationName($orchestrationId);
 
-        $this->getLogger()->info(sprintf(
-            'Orchestration "%s" triggered, job "%s" created',
-            $orchestrationName,
-            $job['id']
-        ));
+            $this->getLogger()->info(sprintf('Triggering orchestration "%s"', $orchestrationName));
+            $job = $this->client->runOrchestration($orchestrationId);
 
-        if ($wait) {
-            $this->waitUntilFinish($job['id']);
+            $this->getLogger()->info(sprintf(
+                'Orchestration "%s" triggered, job "%s" created',
+                $orchestrationName,
+                $job['id']
+            ));
+
+            if ($wait) {
+                $this->waitUntilFinish($job['id']);
+            }
+        } catch (ClientErrorResponseException $e) {
+            $json = $e->getResponse()->json();
+
+            if (isset($json['message'])) {
+                throw new UserException($json['message'], 0, $e);
+            }
+
+            throw $e;
         }
     }
 
@@ -78,19 +89,9 @@ class Component extends BaseComponent
 
     private function loadOrchestrationName(int $orchestrationId): string
     {
-        try {
-            $this->getLogger()->info('Fetching orchestration details');
-            $orchestration = $this->client->getOrchestration($orchestrationId);
-            return $orchestration['name'];
-        } catch (ClientErrorResponseException $e) {
-            $json = $e->getResponse()->json();
-
-            if (isset($json['message'])) {
-                throw new UserException($json['message'], 0, $e);
-            }
-
-            throw $e;
-        }
+        $this->getLogger()->info('Fetching orchestration details');
+        $orchestration = $this->client->getOrchestration($orchestrationId);
+        return $orchestration['name'];
     }
 
     protected function getConfigClass(): string
