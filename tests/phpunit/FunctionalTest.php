@@ -235,7 +235,7 @@ class FunctionalTest extends TestCase
         $task = (new OrchestrationTask())->setComponent(getenv('TEST_COMPONENT_ID'))
             ->setAction('run')
             ->setContinueOnFailure(false)
-            ->setPhase(1)
+            ->setPhase('1')
             ->setActive(true)
             ->setTimeoutMinutes(3)
             ->setActionParameters(['config' => $taskConfigId]);
