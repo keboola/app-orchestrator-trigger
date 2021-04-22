@@ -4,7 +4,7 @@
     "license": "MIT",
     "require": {
         "PHP": "^7.1",
-        "keboola/orchestrator-php-client": "^1.2",
+        "keboola/orchestrator-php-client": "^1.2.3",
         "keboola/php-component": "^4.1",
         "keboola/storage-api-client": "^10.1"
     },
