@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "691106bb469132d794fa5b0667f8a20f",
+    "content-hash": "27e9e5813f050ebfd63104dea0871215",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -393,23 +393,24 @@
         },
         {
             "name": "keboola/orchestrator-php-client",
-            "version": "1.2.2",
+            "version": "1.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/keboola/orchestrator-php-client.git",
-                "reference": "d4a05413877525537fb1c899a792cef3083a301b"
+                "reference": "4b494d3bbb26606458aa14aa0c55f8684feb112e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/keboola/orchestrator-php-client/zipball/d4a05413877525537fb1c899a792cef3083a301b",
-                "reference": "d4a05413877525537fb1c899a792cef3083a301b",
+                "url": "https://api.github.com/repos/keboola/orchestrator-php-client/zipball/4b494d3bbb26606458aa14aa0c55f8684feb112e",
+                "reference": "4b494d3bbb26606458aa14aa0c55f8684feb112e",
                 "shasum": ""
             },
             "require": {
-                "guzzle/guzzle": "3.8.*"
+                "guzzle/guzzle": "3.8.*",
+                "php": ">=5.6"
             },
             "require-dev": {
-                "keboola/storage-api-client": "2.11.*",
+                "keboola/storage-api-client": "6.1.*",
                 "phpunit/phpunit": "3.7.*"
             },
             "type": "library",
@@ -421,7 +422,7 @@
             "notification-url": "https://packagist.org/downloads/",
             "description": "PHP Client for KBC Orchestrator",
             "homepage": "https://connection.keboola.com",
-            "time": "2017-04-21T14:46:18+00:00"
+            "time": "2021-02-01T18:47:35+00:00"
         },
         {
             "name": "keboola/php-component",
